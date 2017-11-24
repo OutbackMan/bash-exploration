@@ -42,9 +42,16 @@ print_invalid_option_argument() {
   #  
 }
 
-## Parsing arguments
-OPTSPEC="hv-p:"
+## option, option argument, operand
+## each call will use the next positional parameter and possible argument
+## stops on first operand
 
+## Parsing arguments
+## Silent error reporting mode (\?==invalid option, :==required argument not found)
+## Must manually disallow identical options
+OPTSPEC=":hv-p:"
+
+## Defaults to $@ but could parse explicit array
 while getopts "$OPTSPEC" OPTCHAR; do
   case "$OPTCHAR" in
 	h)
@@ -76,4 +83,24 @@ while getopts "$OPTSPEC" OPTCHAR; do
   esac	
 done
 
+case $optchar in
+  r)
+    process_r_opt $OPTARG 
+    ;;
+  repeat=* | repeat)
+	OPTARG=""
+	process_r_opt $OPTARG
+	;;
+  
+esac
 
+process_r_opt() {
+## $1 == empty --> must have passed long option with no argument
+  if [ -z "$1" ]; then
+    printf "requires argument"
+	exit 1
+  elif [ "$1" -lt 0 ]; then
+    printf "invalid argument value"
+	exit 2
+  fi  
+}
