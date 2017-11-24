@@ -28,7 +28,7 @@ print_invalid_option() {
 #@ ARGUMENTS:
 #@	$1 = Option requiring argument
 print_option_requires_argument() {
-  printf "$TITLE: option requires an argument -- '$1'\n"  
+  printf "${TITLE}: option requires an argument -- '$1'\n"  
   printf "Usage: $USAGE\n"
   printf "\nTry '$TITLE --help' for more options.\n"
 }
@@ -85,22 +85,37 @@ done
 
 case $optchar in
   r)
-    process_r_opt $OPTARG 
+    _process_r_opt $OPTARG 
     ;;
   repeat=* | repeat)
 	OPTARG=""
-	process_r_opt $OPTARG
+	_process_r_opt $OPTARG
 	;;
   
 esac
 
-process_r_opt() {
+_process_r_opt() {
+## Check if processing a duplicate argument
+  if [ -z ${_PROCESS_R_OPT+x} ]; then
+	_PROCESS_R_OPT=1
+  else
+    return 0
+  fi 
 ## $1 == empty --> must have passed long option with no argument
+## Could also be checking if passed an argument when not expected
   if [ -z "$1" ]; then
-    printf "requires argument"
+    printf "requires argument" # redirect to stderr
 	exit 1
   elif [ "$1" -lt 0 ]; then
     printf "invalid argument value"
 	exit 2
+  else
+	return 0
   fi  
 }
+
+if [ ! _process_r_opt "${OPTARG}" ]; then
+	printf "Error processing r option\n"
+fi 
+
+# main "$@"
